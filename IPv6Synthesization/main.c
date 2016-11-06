@@ -15,8 +15,8 @@ int main(int argc, const char * argv[]) {
     
     uint8_t ipv4[4] = {115, 239, 210, 27};
     struct addrinfo hints, *res, *res0;
-    int error, s;
-    const char *cause = NULL;
+    char hbuf[NI_MAXHOST], sbuf[NI_MAXSERV];
+    int error;
     
     char ipv4_str_buf[INET_ADDRSTRLEN] = { 0 };
     const char *ipv4_str = inet_ntop(AF_INET, &ipv4, ipv4_str_buf, sizeof(ipv4_str_buf));
@@ -30,27 +30,14 @@ int main(int argc, const char * argv[]) {
         errx(1, "%s", gai_strerror(error));
         /*NOTREACHED*/
     }
-    s = -1;
+    
     for (res = res0; res; res = res->ai_next) {
-        s = socket(res->ai_family, res->ai_socktype,
-                   res->ai_protocol);
-        if (s < 0) {
-            cause = "socket";
-            continue;
+        if (getnameinfo(res->ai_addr, res->ai_addr->sa_len, hbuf, sizeof(hbuf), sbuf,
+                        sizeof(sbuf), NI_NUMERICHOST | NI_NUMERICSERV)) {
+            errx(1, "could not get numeric hostname");
+            /*NOTREACHED*/
         }
-        
-        if (connect(s, res->ai_addr, res->ai_addrlen) < 0) {
-            cause = "connect";
-            close(s);
-            s = -1;
-            continue;
-        }
-        
-        break;  /* okay we got one */
-    }
-    if (s < 0) {
-        err(1, "%s", cause);
-        /*NOTREACHED*/
+        printf("host=%s, serv=%s\n", hbuf, sbuf);
     }
     freeaddrinfo(res0);
     
