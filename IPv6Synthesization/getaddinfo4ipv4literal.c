@@ -30,12 +30,13 @@ int ipv6equal(struct sockaddr_in6 *left, struct sockaddr_in6 *right)
     
     for (int i = 0; i < length; i++)
     {
-        if (left->sin6_addr.__u6_addr.__u6_addr8[i] != right->sin6_addr.__u6_addr.__u6_addr8[i])
+        if (left->sin6_addr.s6_addr[i] != right->sin6_addr.s6_addr[i])
         {
             equal = 0;
             break;
         }
     }
+    
     return equal;
 }
 
@@ -91,8 +92,7 @@ void removeduplicateditems(struct addrinfo **res)
     }
 }
 
-int
-getaddrinfo4ipv4literal(const char *hostname, const char *servname,
+int getaddrinfo4ipv4literal(const char *hostname, const char *servname,
             const struct addrinfo *hints, struct addrinfo **res)
 {
     int rlt = 0;
@@ -115,14 +115,13 @@ getaddrinfo4ipv4literal(const char *hostname, const char *servname,
             {
                 struct sockaddr_in6 *dest = (struct sockaddr_in6 *)tempRes->ai_addr;
                 // overwrite the last four bytes
-                memcpy(&dest->sin6_addr.__u6_addr.__u6_addr8 + 12,&ipv4, sizeof(in_addr_t));
+                memcpy(dest->sin6_addr.s6_addr + 12, &ipv4, sizeof(in_addr_t));
                 dest->sin6_port = port;
             }
         }
         // 3. remove duplicated items
         removeduplicateditems(res);
     }
-    
     
     return rlt;
 
